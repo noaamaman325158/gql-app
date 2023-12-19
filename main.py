@@ -1,6 +1,13 @@
 from graphene import Schema, ObjectType, String, Int, List, Field
 from fastapi import FastAPI
 from starlette_graphene3 import GraphQLApp, make_graphiql_handler
+from sqlalchemy import create_engine
+
+
+# Here I paste postgres connection string
+DB_URL = "DB_URL"
+engine = create_engine(DB_URL)
+conn = engine.connect()
 
 # Static Data
 employers_data = [
