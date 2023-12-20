@@ -1,11 +1,12 @@
 from graphene import Schema, ObjectType, String, Int, List, Field
 from fastapi import FastAPI
 from starlette_graphene3 import GraphQLApp, make_graphiql_handler
-from sqlalchemy import create_engine, Column, Integer, String as saString
+from sqlalchemy import create_engine, Column, Integer, String as saString, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 # Here I paste postgres connection string
-DB_URL = "postgresql://postgres:dd-ggbc-4AEbF2Adc3GDBc2E-cEEb24f@viaduct.proxy.rlwy.net:20549/railway"
+DB_URL = "postgresql://postgres:2e54-cbD4-BbGbGDEDF--B555AGB33aF@viaduct.proxy.rlwy.net:31595/railway"
 engine = create_engine(DB_URL)
 conn = engine.connect()
 
@@ -20,6 +21,17 @@ class Employer(Base):
     name = Column(saString)
     contact_email = Column(saString)
     industry = Column(saString)
+    jobs = relationship("Job", back_populates="employer")
+
+
+class Job(Base):
+    __tablename__ = "jobs"
+    id = Column(Integer, primary_key=True)
+    title = Column(saString)
+    description = Column(saString)
+    employer_id = Column(ForeignKey("employers.id"))
+    employer = relationship("Employer", back_populates="jobs")
+
 
 
 Base.metadata.create_all(engine)
