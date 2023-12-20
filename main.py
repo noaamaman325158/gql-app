@@ -33,10 +33,7 @@ class Job(Base):
     employer = relationship("Employer", back_populates="jobs")
 
 
-Base.metadata.create_all(engine)
-
 Session = sessionmaker(bind=engine)
-session = Session()
 
 # emp1 = Employer(id=1, name="noaa maman", contact_email="noaamaman325158@gmail.com", industry="Tech")
 # session.add(emp1)
@@ -53,19 +50,26 @@ jobs_data = [
     {"id": 4, "title": "Manager", "description": "Manage people who manage records", "employer_id": 2},
 ]
 
-for employer in employers_data:
-    # create a new instance of employer
-    # emp = Employer(id=employer.get("id"), name=employer.get("name"), contact_email=employer.get("contact_email"),
-    #                employer_id=employer.get("employer_id"))
-    # add it to the session
-    # **-> For unpacking the dictionary collection data structure type
-    emp = Employer(**employer)
-    session.add(emp)
 
-for job in jobs_data:
-    session.add(Job(**job))
+def prepare_database():
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
 
-session.commit()
+    session = Session()
+    for employer in employers_data:
+        # create a new instance of employer
+        # emp = Employer(id=employer.get("id"), name=employer.get("name"), contact_email=employer.get("contact_email"),
+        #                employer_id=employer.get("employer_id"))
+        # add it to the session
+        # **-> For unpacking the dictionary collection data structure type
+        emp = Employer(**employer)
+        session.add(emp)
+
+    for job in jobs_data:
+        session.add(Job(**job))
+
+    session.commit()
+    session.close()
 
 
 class EmployerObject(ObjectType):
@@ -110,6 +114,12 @@ class Query(ObjectType):
 schema = Schema(query=Query)
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+def startup_event():
+    prepare_database()
+
 
 app.mount("/graphql", GraphQLApp(
     schema=schema,
