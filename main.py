@@ -1,13 +1,28 @@
 from graphene import Schema, ObjectType, String, Int, List, Field
 from fastapi import FastAPI
 from starlette_graphene3 import GraphQLApp, make_graphiql_handler
-from sqlalchemy import create_engine
-
+from sqlalchemy import create_engine, Column, Integer, String as saString
+from sqlalchemy.ext.declarative import declarative_base
 
 # Here I paste postgres connection string
-DB_URL = "DB_URL"
+DB_URL = "postgresql://postgres:dd-ggbc-4AEbF2Adc3GDBc2E-cEEb24f@viaduct.proxy.rlwy.net:20549/railway"
 engine = create_engine(DB_URL)
 conn = engine.connect()
+
+Base = declarative_base()
+
+
+# Define our entities in declarative python
+class Employer(Base):
+    __tablename__ = "employers"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(saString)
+    contact_email = Column(saString)
+    industry = Column(saString)
+
+
+Base.metadata.create_all(engine)
 
 # Static Data
 employers_data = [
