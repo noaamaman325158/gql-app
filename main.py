@@ -2,8 +2,8 @@ from graphene import Schema, ObjectType, String, Int, List, Field
 from fastapi import FastAPI
 from starlette_graphene3 import GraphQLApp, make_graphiql_handler
 from sqlalchemy import create_engine, Column, Integer, String as saString, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
 
 # Here I paste postgres connection string
 DB_URL = "postgresql://postgres:2e54-cbD4-BbGbGDEDF--B555AGB33aF@viaduct.proxy.rlwy.net:31595/railway"
@@ -33,9 +33,13 @@ class Job(Base):
     employer = relationship("Employer", back_populates="jobs")
 
 
-
 Base.metadata.create_all(engine)
 
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# emp1 = Employer(id=1, name="noaa maman", contact_email="noaamaman325158@gmail.com", industry="Tech")
+# session.add(emp1)
 # Static Data
 employers_data = [
     {"id": 1, "name": "MetaTechA", "contact_email": "contact@company-a.com", "industry": "Tech"},
@@ -48,6 +52,20 @@ jobs_data = [
     {"id": 3, "title": "Accountant", "description": "Manage financial records", "employer_id": 2},
     {"id": 4, "title": "Manager", "description": "Manage people who manage records", "employer_id": 2},
 ]
+
+for employer in employers_data:
+    # create a new instance of employer
+    # emp = Employer(id=employer.get("id"), name=employer.get("name"), contact_email=employer.get("contact_email"),
+    #                employer_id=employer.get("employer_id"))
+    # add it to the session
+    # **-> For unpacking the dictionary collection data structure type
+    emp = Employer(**employer)
+    session.add(emp)
+
+for job in jobs_data:
+    session.add(Job(**job))
+
+session.commit()
 
 
 class EmployerObject(ObjectType):
