@@ -2,6 +2,7 @@ from graphene import Mutation, String, Int, Field, ObjectType
 from app.gql.types import JobObject
 from app.db.database import Session
 from app.db.models import Job
+from sqlalchemy.orm import joinedload
 
 
 class AddJob(Mutation):
@@ -22,5 +23,35 @@ class AddJob(Mutation):
         return AddJob(job=job)
 
 
+class UpdateJob(Mutation):
+    class Arguments:
+        job_id = Int(required=True)
+        title = String()
+        description = String()
+        employer_id = Int()
+
+    job = Field(lambda: JobObject)
+
+    @staticmethod
+    def mutate(root, info, job_id, title=None, description=None, employer_id=None):
+        session = Session()
+        job = session.query(Job).filter(job_id == job_id).options(joinedload(Job.employer)).first()
+        if not job:
+            raise Exception("Job not found")
+
+        if title is not None:
+            job.title = title
+        if description is not None:
+            job.description = description
+        if employer_id is not None:
+            job.employer_id = employer_id
+
+        session.commit()
+        session.refresh(job)
+        session.close()
+        return UpdateJob(job=job)
+
+
 class Mutation(ObjectType):
     add_job = AddJob.Field()
+    update_job = UpdateJob.Field()
