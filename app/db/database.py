@@ -4,7 +4,7 @@ from app.db.models import Base, Employer, Job
 from app.config.config import DB_URL
 from app.db.data import employers_data, jobs_data
 
-engine = create_engine(DB_URL)
+engine = create_engine(DB_URL, echo=True)
 conn = engine.connect()
 
 Session = sessionmaker(bind=engine)
